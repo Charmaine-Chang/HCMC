@@ -26,11 +26,11 @@ export function Home({ lang, activities, onNavigate }: { lang: Lang; activities:
   return (
     <main ref={root} className="home-premium">
       <section className="ccmc-hero">
-        <img className="hero-photo" src="/images/hcmc-community-hero.png" alt={copy(lang, '教会会友在聚会后自然交谈', 'Church community members talking after a gathering')} />
+        <img className="hero-photo" src="/images/hcmc-cross-hero.png" alt={copy(lang, '晨光中山丘上的木制十字架', 'A wooden cross on a hill in the morning light')} style={{ objectPosition: '80% center' }} />
         <div className="hero-tint" />
         <div className="hero-caption">
-          <p>{copy(lang, '汉美顿怀恩堂', 'Hamilton Chinese Methodist Church')}</p>
-          <h1>{copy(lang, '与神连接，和人同行', 'Connected with God and people')}</h1>
+          <h1>{copy(lang, '哈密尔顿怀恩堂', 'Hamilton Chinese Methodist Church')}</h1>
+          <p style={{ margin: '24px 0 0', fontSize: 'clamp(16px, 2vw, 24px)', lineHeight: 1.6, letterSpacing: '.06em', textTransform: 'none' }}>{copy(lang, '与神连接，和人同行', 'Connected with God and people')}</p>
         </div>
         <a className="scroll-cue" href="#welcome">{copy(lang, '向下探索', 'Discover more')} <span aria-hidden="true">&#8595;</span></a>
       </section>

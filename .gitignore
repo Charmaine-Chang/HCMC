@@ -19,3 +19,11 @@ build/
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
+coverage/
+*.tsbuildinfo
+apps/api/prisma/*.db
+.npm-cache/
+connect_local.py
+.firecrawl/

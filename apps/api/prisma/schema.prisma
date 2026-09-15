@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PASTOR
+  VOLUNTEER
+  MEMBER
+}
+enum ChurchStatus {
+  NEWCOMER
+  SEEKER
+  MEMBER
+}
+enum FollowupStatus {
+  PENDING_FOLLOWUP
+  CONTACTED
+  COMPLETED
+}
+enum Language {
+  CHINESE
+  ENGLISH
+  BILINGUAL
+}
+enum ActivityVisibility {
+  PUBLIC
+  INTERNAL
+}
+enum ActivityStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+enum AssignmentStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+enum EmailTemplate {
+  WELCOME_EMAIL
+  ROSTER_ASSIGNMENT
+  REMINDER_48H
+  CHANGE_NOTICE
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  fullName String
+  role Role @default(MEMBER)
+  churchStatus ChurchStatus @default(MEMBER)
+  receptionAccess Boolean @default(false)
+  ministryId String?
+  ministry Ministry? @relation(fields: [ministryId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  assignments VolunteerAssignment[]
+  followups Newcomer[]
+  coordinatedActivities Activity[] @relation("ActivityCoordinator")
+  @@index([ministryId])
+  @@index([role])
+}
+model Ministry {
+  id String @id @default(cuid())
+  name String @unique
+  activities Activity[]
+  users User[]
+}
+model Newcomer {
+  id String @id @default(cuid())
+  fullName String
+  preferredName String?
+  email String?
+  phone String?
+  preferredLanguage Language
+  interestedFellowships Json?
+  consentContact Boolean
+  subscribeUpdates Boolean @default(false)
+  status FollowupStatus @default(PENDING_FOLLOWUP)
+  assignedVolunteerId String?
+  assignedVolunteer User? @relation(fields:[assignedVolunteerId],references:[id])
+  isPotentialDuplicate Boolean @default(false)
+  notes String? @db.Text
+  registeredAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Activity {
+  id String @id @default(cuid())
+  title String
+  description String? @db.Text
+  startTime DateTime
+  endTime DateTime
+  location String
+  ministryId String
+  ministry Ministry @relation(fields:[ministryId],references:[id])
+  visibility ActivityVisibility
+  status ActivityStatus @default(DRAFT)
+  coordinatorId String?
+  coordinator User? @relation("ActivityCoordinator", fields: [coordinatorId], references: [id], onDelete: SetNull)
+  duties Duty[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([ministryId])
+  @@index([coordinatorId])
+  @@index([startTime, status, visibility])
+}
+model Duty {
+  id String @id @default(cuid())
+  activityId String
+  activity Activity @relation(fields:[activityId],references:[id],onDelete:Cascade)
+  name String
+  requiredCount Int @default(1)
+  assignments VolunteerAssignment[]
+  @@index([activityId])
+}
+model VolunteerAssignment {
+  id String @id @default(cuid())
+  dutyId String
+  duty Duty @relation(fields:[dutyId],references:[id],onDelete:Cascade)
+  volunteerId String
+  volunteer User @relation(fields:[volunteerId],references:[id])
+  status AssignmentStatus @default(PENDING)
+  declineReason String?
+  confirmedAt DateTime?
+  tokenHash String? @unique
+  tokenExpiresAt DateTime?
+  createdAt DateTime @default(now())
+  @@unique([dutyId,volunteerId])
+  @@index([volunteerId])
+}
+model EmailTask {
+  id String @id @default(cuid())
+  recipientEmail String
+  template EmailTemplate
+  payload Json
+  dedupeKey String @unique
+  status EmailStatus @default(PENDING)
+  retryCount Int @default(0)
+  scheduledAt DateTime @default(now())
+  sentAt DateTime?
+  lastError String? @db.Text
+  createdAt DateTime @default(now())
+  @@index([status, scheduledAt])
+}
+model AuditLog {
+  id String @id @default(cuid())
+  actorId String
+  action String
+  entity String
+  entityId String
+  createdAt DateTime @default(now())
+  @@index([actorId, createdAt])
+  @@index([entity, entityId])
+}
+model ScriptureVerse {
+  id String @id
+  bookCode String
+  bookName String
+  chapter Int
+  verse Int
+  version String
+  text String @db.Text
+  testament String
+  @@unique([bookCode,chapter,verse,version])
+  @@index([bookCode,chapter])
+  @@index([version, testament])
+}
